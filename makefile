@@ -1,3 +1,3 @@
 
 all:
-	clang main.c -o rebuid-elf-section
+	clang main.c -o ./output/rebuid-elf-section
