@@ -18,14 +18,28 @@ typedef struct{
     const char *pathname;
     
     ElfW(Addr)  base_addr;
-    ElfW(Addr)  bias_addr;
-    
-    ElfW(Ehdr) *ehdr;
-    ElfW(Phdr) *phdr;
-
-    ElfW(Dyn)  *dyn;     //.dynamic
+    ElfW(Phdr)  *phdr;
+    ElfW(Dyn)   *dyn;     //.dynamic
     ElfW(Word)  dyn_sz;
 
+    const char  *shstrtab;
+    /*
+    init_array
+    init_array_size
+    fini_array
+    fini_array_size
+    hash
+    hash_size
+    dynstr
+    dynstr_size
+    dynsym
+    dynsym_size
+    rel.dyn
+    rel.plt
+    got
+    .plt
+    text
+    */
     const char *strtab;  //.dynstr (string-table)
     ElfW(Sym)  *symtab;  //.dynsym (symbol-index to string-table's offset)
 
