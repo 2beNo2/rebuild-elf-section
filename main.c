@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -7,28 +6,29 @@
 
 int rebuild(const char* pathname){
     FILE *fp = NULL;
+    int nFileSize = 0;
+    char* pFileBuffer = NULL;
     char magic[5] = {0};
 
     fp = fopen(pathname, "rb+");
     if(NULL == fp){
         return -1;
     }
-    
-    /*
-    FILE *file = NULL;
-    file = fopen(szFileFullPath,"rb");
-    if ( !file )
-        return;
-    fseek(file,0,SEEK_END);
-    int nFileLen = ftell(file);
-    fseek(file,0,SEEK_SET);
-    fclose(file);
-    */
+    fseek(fp, 0, SEEK_END);
+    nFileSize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    pFileBuffer = (char*)malloc(nFileSize);
+    if(NULL == pFileBuffer){
+        fclose(fp);
+        return -1;
+    }
 
-    fread(magic, 1, 5, fp);
-    printf("%s\n", magic);
-
+    fread(pFileBuffer, 1, nFileSize, fp);
     fclose(fp);
+
+    printf("%s\n", pFileBuffer);
+    
+    free(pFileBuffer);
     return 1;
 }
 
