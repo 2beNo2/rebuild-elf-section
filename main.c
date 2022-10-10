@@ -2,13 +2,12 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "utils/ch_elf.h"
+#include "utils/re_elf.h"
 
 int rebuild(const char* pathname){
     FILE *fp = NULL;
     int nFileSize = 0;
     char* pFileBuffer = NULL;
-    char magic[5] = {0};
 
     fp = fopen(pathname, "rb+");
     if(NULL == fp){
@@ -25,9 +24,8 @@ int rebuild(const char* pathname){
 
     fread(pFileBuffer, 1, nFileSize, fp);
     fclose(fp);
+    // printf("%s\n", pFileBuffer);
 
-    printf("%s\n", pFileBuffer);
-    
     free(pFileBuffer);
     return 1;
 }

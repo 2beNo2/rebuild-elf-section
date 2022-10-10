@@ -15,57 +15,42 @@ extern "C" {
 #endif
 
 typedef struct{
-    const char *pathname;
+    const char  *pathname;
     
     ElfW(Addr)  base_addr;
     ElfW(Phdr)  *phdr;
-    ElfW(Dyn)   *dyn;     //.dynamic
-    ElfW(Word)  dyn_sz;
+    ElfW(Dyn)   *dynamic_tab;       
+    ElfW(Word)  dynamic_sz;
 
     const char  *shstrtab;
-    /*
-    init_array
-    init_array_size
-    fini_array
-    fini_array_size
-    hash
-    hash_size
-    dynstr
-    dynstr_size
-    dynsym
-    dynsym_size
-    rel.dyn
-    rel.plt
-    got
-    .plt
-    text
-    */
-    const char *strtab;  //.dynstr (string-table)
-    ElfW(Sym)  *symtab;  //.dynsym (symbol-index to string-table's offset)
 
-    ElfW(Addr)  relplt;  //.rel.plt or .rela.plt
-    ElfW(Word)  relplt_sz;
+    ElfW(Addr)  preinit_array_tab;
+    ElfW(Word)  preinit_array_sz;
+    ElfW(Addr)  init_array_tab;
+    ElfW(Word)  init_array_sz;
+    ElfW(Addr)  finit_array_tab;
+    ElfW(Word)  finit_array_sz;
     
-    ElfW(Addr)  reldyn;  //.rel.dyn or .rela.dyn
-    ElfW(Word)  reldyn_sz;
-    
-    ElfW(Addr)  relandroid;  //android compressed rel or rela
-    ElfW(Word)  relandroid_sz;
+    ElfW(Addr)  hash_tab;
+    uint32_t    hash_sz;
+    //ElfW(Addr)  gnu_hash_addr;
 
-    //for ELF hash
-    uint32_t   *bucket;
-    uint32_t    bucket_cnt;
-    uint32_t   *chain;
-    uint32_t    chain_cnt;  //invalid for GNU hash
+    ElfW(Addr)  dynstr_tab;
+    ElfW(Word)  dynstr_sz;
+    ElfW(Sym)   dynsym_tab; 
+    ElfW(Word)  dynsym_sz;
 
-    //append for GNU hash
-    uint32_t    symoffset;
-    ElfW(Addr) *bloom;
-    uint32_t    bloom_sz;
-    uint32_t    bloom_shift;
-    
     int         is_use_rela;
-    int         is_use_gnu_hash;
+    ElfW(Addr)  relplt_tab;
+    ElfW(Word)  relplt_sz;
+    ElfW(Addr)  reldyn_tab;
+    ElfW(Word)  reldyn_sz;
+
+    ElfW(Addr)  got_tab;
+    ElfW(Addr)  plt_tab;
+
+    ElfW(Addr)  text_tab;
+
 } re_elf_t;
 
 #ifdef __cplusplus
