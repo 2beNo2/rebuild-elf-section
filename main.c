@@ -6,27 +6,33 @@
 
 int rebuild(const char* pathname){
     FILE *fp = NULL;
-    int nFileSize = 0;
-    char* pFileBuffer = NULL;
+    int file_sz = 0;
+    char* file_buf = NULL;
 
     fp = fopen(pathname, "rb+");
     if(NULL == fp){
         return -1;
     }
     fseek(fp, 0, SEEK_END);
-    nFileSize = ftell(fp);
+    file_sz = ftell(fp);
     fseek(fp, 0, SEEK_SET);
-    pFileBuffer = (char*)malloc(nFileSize);
-    if(NULL == pFileBuffer){
+    file_buf = (char*)malloc(file_sz);
+    if(NULL == file_buf){
         fclose(fp);
         return -1;
     }
-
-    fread(pFileBuffer, 1, nFileSize, fp);
+    fread(file_buf, 1, file_sz, fp);
     fclose(fp);
-    // printf("%s\n", pFileBuffer);
+    // printf("%s\n", file_buf);
 
-    free(pFileBuffer);
+    if(re_elf_check_elfheader(file_buf) < 0){
+        printf("error elf-format!\n");
+        free(file_buf);
+        return -1;
+    }
+
+    
+    free(file_buf);
     return 1;
 }
 

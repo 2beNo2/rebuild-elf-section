@@ -70,6 +70,7 @@ typedef struct elf64_hdr{
 #define	ELFMAG2		'L'
 #define	ELFMAG3		'F'
 #define ELFMAG      "\177ELF"
+#define SELFMAG     4
 
 #define	ELFCLASSNONE	0 	// Invalid class
 #define	ELFCLASS32		1 	// 32-bit objects
@@ -99,7 +100,7 @@ typedef struct elf64_hdr{
 #define	EM_MIPS		8
 #define	EM_X86_64	62	
 #define	EM_ARM 		40	
-#define EM_AR64     183
+#define EM_AARCH64  183
 
 #define	EM_NONE_MEANING		"No machine"
 #define	EM_M32_MEANING		"AT&T WE 32100"

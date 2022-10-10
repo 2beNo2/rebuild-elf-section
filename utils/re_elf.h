@@ -53,6 +53,9 @@ typedef struct{
 
 } re_elf_t;
 
+int re_elf_check_elfheader(uintptr_t base_addr);
+
+
 #ifdef __cplusplus
 }
 #endif
