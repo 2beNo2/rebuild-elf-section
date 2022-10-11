@@ -54,7 +54,7 @@ typedef struct{
 } re_elf_t;
 
 int re_elf_check_elfheader(uintptr_t base_addr);
-
+int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname);
 
 #ifdef __cplusplus
 }

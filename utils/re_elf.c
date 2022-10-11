@@ -2,10 +2,8 @@
 #include "re_elf.h"
 
 
-
 //ELF header checker
-int re_elf_check_elfheader(uintptr_t base_addr)
-{
+int re_elf_check_elfheader(uintptr_t base_addr){
     ElfW(Ehdr) *ehdr = (ElfW(Ehdr) *)base_addr;
 
     //check magic
@@ -42,6 +40,14 @@ int re_elf_check_elfheader(uintptr_t base_addr)
 
     //check version
     if(EV_CURRENT != ehdr->e_version) return -1;
+
+    return 0;
+}
+
+
+int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname)
+{
+    if(0 == base_addr || NULL == pathname) return -1;
 
     return 0;
 }
