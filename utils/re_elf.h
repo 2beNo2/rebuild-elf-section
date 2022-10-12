@@ -18,6 +18,7 @@ typedef struct{
     const char  *pathname;
     
     ElfW(Addr)  base_addr;
+    ElfW(Ehdr)  *ehdr;
     ElfW(Phdr)  *phdr;
     ElfW(Dyn)   *dynamic_tab;       
     ElfW(Word)  dynamic_sz;
@@ -37,7 +38,8 @@ typedef struct{
 
     ElfW(Addr)  dynstr_tab;
     ElfW(Word)  dynstr_sz;
-    ElfW(Sym)   dynsym_tab; 
+    ElfW(Sym)   *dynsym_tab; 
+    ElfW(Word)  dynsym_ent;
     ElfW(Word)  dynsym_sz;
 
     int         is_use_rela;
@@ -46,10 +48,14 @@ typedef struct{
     ElfW(Addr)  reldyn_tab;
     ElfW(Word)  reldyn_sz;
 
-    ElfW(Addr)  got_tab;
     ElfW(Addr)  plt_tab;
+    ElfW(Word)  plt_sz;
+
+    ElfW(Addr)  got_tab;
+    ElfW(Word)  got_sz;
 
     ElfW(Addr)  text_tab;
+    ElfW(Word)  text_sz;
 
 } re_elf_t;
 

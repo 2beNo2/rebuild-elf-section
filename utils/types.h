@@ -307,6 +307,16 @@ typedef struct{
 #define DT_DEBUG 21     //是否被调试使用
 #define DT_TEXTREL 22   //代码重定位
 
+#define	DT_BIND_NOW	24		    /* Process relocations of object */
+#define	DT_INIT_ARRAY	25		/* Array with addresses of init fct */
+#define	DT_FINI_ARRAY	26		/* Array with addresses of fini fct */
+#define	DT_INIT_ARRAYSZ	27		/* Size in bytes of DT_INIT_ARRAY */
+#define	DT_FINI_ARRAYSZ	28		/* Size in bytes of DT_FINI_ARRAY */
+#define DT_RUNPATH	29		    /* Library search path */
+#define DT_FLAGS	30		    /* Flags for the object being loaded */
+
+#define DT_PREINIT_ARRAY 32		/* Array with addresses of preinit fct*/
+#define DT_PREINIT_ARRAYSZ 33	/* size in bytes of DT_PREINIT_ARRAY */
 
 //
 //	Program Header Table
@@ -344,6 +354,8 @@ typedef struct elf64_phdr{
 #define	PT_PHDR		6
 #define	PT_LOPROC	0x70000000
 #define	PT_HIPROC	0x7fffffff
+#define PT_GNU_EH_FRAME 0x6474e550
+#define PT_SHT_ARM_EXIDX 0x70000001
 
 //p_flags
 #define	PF_X		0x1

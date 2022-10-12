@@ -25,13 +25,12 @@ int rebuild(const char* pathname){
     fclose(fp);
     // printf("%s\n", file_buf);
 
-    if(re_elf_check_elfheader(file_buf) < 0){
+    if(re_elf_check_elfheader((uintptr_t)file_buf) < 0){
         printf("error elf-format!\n");
         free(file_buf);
         return -1;
     }
 
-    
     free(file_buf);
     return 1;
 }
@@ -47,7 +46,7 @@ int main(int argc, char* argv[]){
     while((c = getopt(argc, argv, "r:")) != -1) {
       switch(c) {
         case 'r': {
-            printf("start rebuilding %s...\n", optarg);
+            printf("start rebuilding %s\n", optarg);
             if(rebuild(optarg) < 0){
                 printf("rebuild failed!\n");
             }else{
@@ -61,7 +60,6 @@ int main(int argc, char* argv[]){
         }
       }
     }
-
     return 0;
 }
 
