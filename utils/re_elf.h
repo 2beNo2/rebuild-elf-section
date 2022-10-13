@@ -25,6 +25,9 @@ typedef struct{
     ElfW(Dyn)   *dynamic_tab;       
     ElfW(Xword) dynamic_sz;
 
+    uint32_t    file_sz;
+    ElfW(Half)  shent_sz;
+
     ElfW(Addr)  preinit_array_addr;
     ElfW(Off)   preinit_array_off;
     ElfW(Xword) preinit_array_sz;
@@ -70,9 +73,10 @@ typedef struct{
 
 } re_elf_t;
 
-int re_elf_check_elfheader(uintptr_t base_addr);
-int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname);
-int re_elf_rewrite(re_elf_t *self, uintptr_t base_addr);
+int  re_elf_check_elfheader(uintptr_t base_addr);
+int  re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname, uint32_t file_sz);
+int  re_elf_rewrite(re_elf_t *self);
+void re_elf_destructor(re_elf_t *self);
 
 #ifdef __cplusplus
 }

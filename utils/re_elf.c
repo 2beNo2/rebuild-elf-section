@@ -1,8 +1,27 @@
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "re_elf.h"
 
 #define RE_DEBUG 1
+
+char g_sh_str[237] = {
+    0x00, 0x2E, 0x73, 0x68, 0x73, 0x74, 0x72, 0x74, 0x61, 0x62, 0x00, 0x2E, 0x69, 0x6E, 0x74, 0x65,
+    0x72, 0x70, 0x00, 0x2E, 0x6E, 0x6F, 0x74, 0x65, 0x2E, 0x61, 0x6E, 0x64, 0x72, 0x6F, 0x69, 0x64,
+    0x2E, 0x69, 0x64, 0x65, 0x6E, 0x74, 0x00, 0x2E, 0x6E, 0x6F, 0x74, 0x65, 0x2E, 0x67, 0x6E, 0x75,
+    0x2E, 0x62, 0x75, 0x69, 0x6C, 0x64, 0x2D, 0x69, 0x64, 0x00, 0x2E, 0x67, 0x6E, 0x75, 0x2E, 0x68,
+    0x61, 0x73, 0x68, 0x00, 0x2E, 0x64, 0x79, 0x6E, 0x73, 0x79, 0x6D, 0x00, 0x2E, 0x64, 0x79, 0x6E,
+    0x73, 0x74, 0x72, 0x00, 0x2E, 0x67, 0x6E, 0x75, 0x2E, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6F, 0x6E,
+    0x00, 0x2E, 0x67, 0x6E, 0x75, 0x2E, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x5F, 0x72, 0x00,
+    0x2E, 0x72, 0x65, 0x6C, 0x61, 0x2E, 0x64, 0x79, 0x6E, 0x00, 0x2E, 0x72, 0x65, 0x6C, 0x61, 0x2E,
+    0x70, 0x6C, 0x74, 0x00, 0x2E, 0x74, 0x65, 0x78, 0x74, 0x00, 0x2E, 0x72, 0x6F, 0x64, 0x61, 0x74,
+    0x61, 0x00, 0x2E, 0x65, 0x68, 0x5F, 0x66, 0x72, 0x61, 0x6D, 0x65, 0x5F, 0x68, 0x64, 0x72, 0x00,
+    0x2E, 0x65, 0x68, 0x5F, 0x66, 0x72, 0x61, 0x6D, 0x65, 0x00, 0x2E, 0x70, 0x72, 0x65, 0x69, 0x6E,
+    0x69, 0x74, 0x5F, 0x61, 0x72, 0x72, 0x61, 0x79, 0x00, 0x2E, 0x69, 0x6E, 0x69, 0x74, 0x5F, 0x61,
+    0x72, 0x72, 0x61, 0x79, 0x00, 0x2E, 0x66, 0x69, 0x6E, 0x69, 0x5F, 0x61, 0x72, 0x72, 0x61, 0x79,
+    0x00, 0x2E, 0x64, 0x79, 0x6E, 0x61, 0x6D, 0x69, 0x63, 0x00, 0x2E, 0x67, 0x6F, 0x74, 0x00, 0x2E,
+    0x62, 0x73, 0x73, 0x00, 0x2E, 0x63, 0x6F, 0x6D, 0x6D, 0x65, 0x6E, 0x74, 0x00 
+};
 
 
 //ELF header checker
@@ -12,7 +31,7 @@ int re_elf_check_elfheader(uintptr_t base_addr){
     //check magic
     if(0 != memcmp(ehdr->e_ident, ELFMAG, SELFMAG)) return -1;
 
-    //check class (64/32) 得删除，不该这样判断
+    //check class (64/32)
 #if defined(__LP64__)
     if(ELFCLASS64 != ehdr->e_ident[EI_CLASS]) return -1;
 #else
@@ -50,48 +69,49 @@ int re_elf_check_elfheader(uintptr_t base_addr){
 static void re_elf_show_elf_info(re_elf_t *self){
     printf("\r\n");
     printf("-------------------------------\r\n");
-    printf("pathname:%s\r\n", self->pathname);
+    printf("[+] pathname:           %s\r\n", self->pathname);
+    printf("[+] new pathname:       %s\r\n", self->new_pathname);
 
-    printf("preinit_array_addr: 0x%x\r\n", self->preinit_array_addr);
-    printf("preinit_array_off:  0x%x\r\n", self->preinit_array_off);
-    printf("preinit_array_sz:   0x%x\r\n", self->preinit_array_sz);
+    printf("[+] preinit_array_addr: 0x%x\r\n", self->preinit_array_addr);
+    printf("[+] preinit_array_off:  0x%x\r\n", self->preinit_array_off);
+    printf("[+] preinit_array_sz:   0x%x\r\n", self->preinit_array_sz);
 
-    printf("init_array_addr:    0x%x\r\n", self->init_array_addr);
-    printf("init_array_off:     0x%x\r\n", self->init_array_off);
-    printf("init_array_sz:      0x%x\r\n", self->init_array_sz);
+    printf("[+] init_array_addr:    0x%x\r\n", self->init_array_addr);
+    printf("[+] init_array_off:     0x%x\r\n", self->init_array_off);
+    printf("[+] init_array_sz:      0x%x\r\n", self->init_array_sz);
 
-    printf("finit_array_addr:   0x%x\r\n", self->finit_array_addr);
-    printf("finit_array_off:    0x%x\r\n", self->finit_array_off);
-    printf("finit_array_sz:     0x%x\r\n", self->finit_array_sz);
+    printf("[+] finit_array_addr:   0x%x\r\n", self->finit_array_addr);
+    printf("[+] finit_array_off:    0x%x\r\n", self->finit_array_off);
+    printf("[+] finit_array_sz:     0x%x\r\n", self->finit_array_sz);
 
-    printf("hash_addr:          0x%x\r\n", self->hash_addr);
-    printf("hash_off:           0x%x\r\n", self->hash_off);
-    printf("hash_sz:            0x%x\r\n", self->hash_sz);
+    printf("[+] hash_addr:          0x%x\r\n", self->hash_addr);
+    printf("[+] hash_off:           0x%x\r\n", self->hash_off);
+    printf("[+] hash_sz:            0x%x\r\n", self->hash_sz);
 
-    printf("dynstr_addr:        0x%x\r\n", self->dynstr_addr);
-    printf("dynstr_off:         0x%x\r\n", self->dynstr_off);
-    printf("dynstr_sz:          0x%x\r\n", self->dynstr_sz);
-    printf("dynsym_addr:        0x%x\r\n", self->dynsym_addr);
-    printf("dynsym_off:         0x%x\r\n", self->dynsym_off);
-    printf("dynsym_sz:          0x%x\r\n", self->dynsym_sz);
+    printf("[+] dynstr_addr:        0x%x\r\n", self->dynstr_addr);
+    printf("[+] dynstr_off:         0x%x\r\n", self->dynstr_off);
+    printf("[+] dynstr_sz:          0x%x\r\n", self->dynstr_sz);
+    printf("[+] dynsym_addr:        0x%x\r\n", self->dynsym_addr);
+    printf("[+] dynsym_off:         0x%x\r\n", self->dynsym_off);
+    printf("[+] dynsym_sz:          0x%x\r\n", self->dynsym_sz);
 
-    printf("relplt_addr:        0x%x\r\n", self->relplt_addr);
-    printf("relplt_off:         0x%x\r\n", self->relplt_off);
-    printf("relplt_sz:          0x%x\r\n", self->relplt_sz);
-    printf("reldyn_addr:        0x%x\r\n", self->reldyn_addr);
-    printf("reldyn_off:         0x%x\r\n", self->reldyn_off);
-    printf("reldyn_sz:          0x%x\r\n", self->reldyn_sz);
+    printf("[+] relplt_addr:        0x%x\r\n", self->relplt_addr);
+    printf("[+] relplt_off:         0x%x\r\n", self->relplt_off);
+    printf("[+] relplt_sz:          0x%x\r\n", self->relplt_sz);
+    printf("[+] reldyn_addr:        0x%x\r\n", self->reldyn_addr);
+    printf("[+] reldyn_off:         0x%x\r\n", self->reldyn_off);
+    printf("[+] reldyn_sz:          0x%x\r\n", self->reldyn_sz);
 
-    printf("plt_addr:           0x%x\r\n", self->plt_addr);
-    printf("plt_off:            0x%x\r\n", self->plt_off);
-    printf("plt_sz:             0x%x\r\n", self->plt_sz);
-    printf("got_addr:           0x%x\r\n", self->got_addr);
-    printf("got_off:            0x%x\r\n", self->got_off);
-    printf("got_sz:             0x%x\r\n", self->got_sz);
+    printf("[+] plt_addr:           0x%x\r\n", self->plt_addr);
+    printf("[+] plt_off:            0x%x\r\n", self->plt_off);
+    printf("[+] plt_sz:             0x%x\r\n", self->plt_sz);
+    printf("[+] got_addr:           0x%x\r\n", self->got_addr);
+    printf("[+] got_off:            0x%x\r\n", self->got_off);
+    printf("[+] got_sz:             0x%x\r\n", self->got_sz);
 
-    printf("text_addr:          0x%x\r\n", self->text_addr);
-    printf("text_off:           0x%x\r\n", self->text_off);
-    printf("text_sz:            0x%x\r\n", self->text_sz);
+    printf("[+] text_addr:          0x%x\r\n", self->text_addr);
+    printf("[+] text_off:           0x%x\r\n", self->text_off);
+    printf("[+] text_sz:            0x%x\r\n", self->text_sz);
 
     printf("-------------------------------\r\n");
     printf("\r\n");
@@ -122,7 +142,7 @@ static ElfW(Off) re_elf_get_section_off(re_elf_t *self, ElfW(Addr) addr){
 }
 
 
-int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
+int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname, uint32_t file_sz){
     ElfW(Phdr) *dynamic_Phdr  = NULL;
     ElfW(Phdr) *eh_frame_Phdr = NULL;
     ElfW(Dyn)  *dyn           = NULL;
@@ -136,9 +156,12 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
     memset(self, 0, sizeof(re_elf_t));
 
     self->pathname    = pathname;
+    self->file_sz     = file_sz;
     self->base_addr   = (ElfW(Addr))base_addr;
     self->ehdr        = (ElfW(Ehdr)*)base_addr;
     self->phdr        = (ElfW(Phdr)*)(base_addr + self->ehdr->e_phoff);
+    self->shent_sz    = self->ehdr->e_shentsize;
+    self->shstrtab    = g_sh_str;
 
     dynamic_Phdr = re_elf_get_segment_by_type(self, PT_DYNAMIC);
     if(NULL == dynamic_Phdr){
@@ -317,6 +340,13 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
     }
     self->text_sz = eh_frame_Phdr->p_vaddr - self->text_addr;
 
+    //get outout path
+    self->new_pathname = (char*)malloc(strlen(self->pathname) + 10);
+    if(NULL == self->new_pathname){
+        return -1;
+    }
+    strncpy(self->new_pathname, self->pathname, strlen(self->pathname));
+    strncat(self->new_pathname, "_new.so", 8);
 
 #ifdef RE_DEBUG
     re_elf_show_elf_info(self);
@@ -326,36 +356,108 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
 }
 
 
-int re_elf_rewrite(re_elf_t *self, uintptr_t base_addr){
-    char *buf = NULL;
-    char hexData[237] = {
-        0x00, 0x2E, 0x73, 0x68, 0x73, 0x74, 0x72, 0x74, 0x61, 0x62, 0x00, 0x2E, 0x69, 0x6E, 0x74, 0x65,
-        0x72, 0x70, 0x00, 0x2E, 0x6E, 0x6F, 0x74, 0x65, 0x2E, 0x61, 0x6E, 0x64, 0x72, 0x6F, 0x69, 0x64,
-        0x2E, 0x69, 0x64, 0x65, 0x6E, 0x74, 0x00, 0x2E, 0x6E, 0x6F, 0x74, 0x65, 0x2E, 0x67, 0x6E, 0x75,
-        0x2E, 0x62, 0x75, 0x69, 0x6C, 0x64, 0x2D, 0x69, 0x64, 0x00, 0x2E, 0x67, 0x6E, 0x75, 0x2E, 0x68,
-        0x61, 0x73, 0x68, 0x00, 0x2E, 0x64, 0x79, 0x6E, 0x73, 0x79, 0x6D, 0x00, 0x2E, 0x64, 0x79, 0x6E,
-        0x73, 0x74, 0x72, 0x00, 0x2E, 0x67, 0x6E, 0x75, 0x2E, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6F, 0x6E,
-        0x00, 0x2E, 0x67, 0x6E, 0x75, 0x2E, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x5F, 0x72, 0x00,
-        0x2E, 0x72, 0x65, 0x6C, 0x61, 0x2E, 0x64, 0x79, 0x6E, 0x00, 0x2E, 0x72, 0x65, 0x6C, 0x61, 0x2E,
-        0x70, 0x6C, 0x74, 0x00, 0x2E, 0x74, 0x65, 0x78, 0x74, 0x00, 0x2E, 0x72, 0x6F, 0x64, 0x61, 0x74,
-        0x61, 0x00, 0x2E, 0x65, 0x68, 0x5F, 0x66, 0x72, 0x61, 0x6D, 0x65, 0x5F, 0x68, 0x64, 0x72, 0x00,
-        0x2E, 0x65, 0x68, 0x5F, 0x66, 0x72, 0x61, 0x6D, 0x65, 0x00, 0x2E, 0x70, 0x72, 0x65, 0x69, 0x6E,
-        0x69, 0x74, 0x5F, 0x61, 0x72, 0x72, 0x61, 0x79, 0x00, 0x2E, 0x69, 0x6E, 0x69, 0x74, 0x5F, 0x61,
-        0x72, 0x72, 0x61, 0x79, 0x00, 0x2E, 0x66, 0x69, 0x6E, 0x69, 0x5F, 0x61, 0x72, 0x72, 0x61, 0x79,
-        0x00, 0x2E, 0x64, 0x79, 0x6E, 0x61, 0x6D, 0x69, 0x63, 0x00, 0x2E, 0x67, 0x6F, 0x74, 0x00, 0x2E,
-        0x62, 0x73, 0x73, 0x00, 0x2E, 0x63, 0x6F, 0x6D, 0x6D, 0x65, 0x6E, 0x74, 0x00 
-    };
+int re_elf_rewrite(re_elf_t *self){
+    FILE *fp   = NULL;
+    ElfW(Shdr) *shdr = NULL;
 
-    self->shstrtab = hexData;
-    
-    buf = (char*)malloc(strlen(self->pathname) + 10);
-    if(NULL == buf){
+    fp = fopen(self->new_pathname, "wb");
+    if(NULL == fp){
         return -1;
     }
-    strncpy(buf, self->pathname, strlen(self->pathname));
 
+    shdr = (ElfW(Shdr)*)malloc(sizeof(ElfW(Shdr)));
+    if(NULL == shdr){
+        return -1;
+    }
+    memset(shdr, 0, sizeof(ElfW(Shdr)));
 
+    //重构section相关数据，section_off、section_num、shtrndx
+    self->ehdr->e_shoff = self->file_sz + 237;
+    self->ehdr->e_shnum = 1;
+    self->ehdr->e_shstrndx = 1;
+    fwrite(self->base_addr, 1, self->file_sz, fp);
 
-    free(buf);
+    //写入shstrtab，注意对齐
+    fwrite(self->shstrtab, 1, 237, fp);
+
+    //写入第一个无效表项
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
+
+    //写入初始化相关的节
+    shdr->sh_name = 0xaa;
+    shdr->sh_type = SHT_PREINIT_ARRAY;
+    shdr->sh_flags = SHF_WRITE | SHF_ALLOC;  //?
+    shdr->sh_addr = self->preinit_array_addr;
+    shdr->sh_offset = self->preinit_array_off;
+    shdr->sh_size = self->preinit_array_sz;
+    shdr->sh_link = 0;
+    shdr->sh_info = 0;
+    shdr->sh_addralign = sizeof(ElfW(Xword));
+    shdr->sh_entsize = sizeof(ElfW(Xword));
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
+
+    memset(shdr, 0, sizeof(ElfW(Shdr)));
+    shdr->sh_name = 0xb9;
+    shdr->sh_type = SHT_INIT_ARRAY;
+    shdr->sh_flags = SHF_WRITE | SHF_ALLOC;  //?
+    shdr->sh_addr = self->init_array_addr;
+    shdr->sh_offset = self->init_array_off;
+    shdr->sh_size = self->init_array_sz;
+    shdr->sh_link = 0;
+    shdr->sh_info = 0;
+    shdr->sh_addralign = sizeof(ElfW(Xword));
+    shdr->sh_entsize = sizeof(ElfW(Xword));
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
+
+    memset(shdr, 0, sizeof(ElfW(Shdr)));
+    shdr->sh_name = 0xc5;
+    shdr->sh_type = SHT_FINI_ARRAY;
+    shdr->sh_flags = SHF_WRITE | SHF_ALLOC;  //?
+    shdr->sh_addr = self->finit_array_addr;
+    shdr->sh_offset = self->finit_array_off;
+    shdr->sh_size = self->finit_array_sz;
+    shdr->sh_link = 0;
+    shdr->sh_info = 0;
+    shdr->sh_addralign = sizeof(ElfW(Xword));
+    shdr->sh_entsize = sizeof(ElfW(Xword));
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
+
+    //写入hash，todo
+    memset(shdr, 0, sizeof(ElfW(Shdr)));
+    shdr->sh_name = 0xc5;
+    shdr->sh_type = SHT_HASH;
+    shdr->sh_flags = SHF_WRITE | SHF_ALLOC;  //?
+    shdr->sh_addr = self->hash_addr;
+    shdr->sh_offset = self->hash_off;
+    shdr->sh_size = self->hash_sz;
+    shdr->sh_link = 0;
+    shdr->sh_info = 0;
+    shdr->sh_addralign = sizeof(ElfW(Xword));
+    shdr->sh_entsize = sizeof(ElfW(Xword));
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
+
+    //写入dynstr、dynsym
+    memset(shdr, 0, sizeof(ElfW(Shdr)));
+
+    //写入重定位节
+    memset(shdr, 0, sizeof(ElfW(Shdr)));
+
+    //写入plt
+    memset(shdr, 0, sizeof(ElfW(Shdr)));
+
+    //写入got
+    memset(shdr, 0, sizeof(ElfW(Shdr)));
+
+    //写入text
+    memset(shdr, 0, sizeof(ElfW(Shdr)));
+
     return 0;
+}
+
+
+void re_elf_destructor(re_elf_t *self){
+    if(NULL != self->new_pathname){
+        free(self->new_pathname);
+        self->new_pathname = NULL;
+    }
 }

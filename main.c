@@ -6,7 +6,7 @@
 
 int rebuild(const char* pathname){
     FILE *fp = NULL;
-    int file_sz = 0;
+    uint32_t file_sz = 0;
     char* file_buf = NULL;
     re_elf_t re_self;
 
@@ -27,18 +27,26 @@ int rebuild(const char* pathname){
     //printf("%s\n", file_buf);
 
     if(re_elf_check_elfheader((uintptr_t)file_buf) < 0){
-        printf("error elf-format!\n");
+        printf("[-] error elf format!\n");
         free(file_buf);
         return -1;
     }
 
-    if(re_elf_init(&re_self, (uintptr_t)file_buf, pathname) < 0){
-        printf("elf init error!\n");
+    if(re_elf_init(&re_self, (uintptr_t)file_buf, pathname, file_sz) < 0){
+        printf("[-] elf init failed!\n");
         free(file_buf);
+        return -1;
+    }
+
+    if(re_elf_rewrite(&re_self) < 0){
+        printf("[-] elf rewrite failed!\n");
+        free(file_buf);
+        re_elf_destructor(&re_self);
         return -1;
     }
 
     free(file_buf);
+    re_elf_destructor(&re_self);
     return 1;
 }
 
@@ -53,11 +61,11 @@ int main(int argc, char* argv[]){
     while((c = getopt(argc, argv, "r:")) != -1) {
       switch(c) {
         case 'r': {
-            printf("start rebuilding %s\n", optarg);
+            printf("[+] start rebuilding %s\n", optarg);
             if(rebuild(optarg) < 0){
-                printf("rebuild failed!\n");
+                printf("[-] rebuild failed!\n");
             }else{
-                printf("rebuild success!\n");
+                printf("[+] rebuild success!\n");
             }
             break;
         }
