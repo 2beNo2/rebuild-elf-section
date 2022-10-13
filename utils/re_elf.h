@@ -16,8 +16,8 @@ extern "C" {
 
 typedef struct{
     const char  *pathname;
-    const char  *new_pathname;
-    const char  *shstrtab;
+    char  *new_pathname;
+    char  *shstrtab;
 
     ElfW(Addr)  base_addr;
     ElfW(Ehdr)  *ehdr;
