@@ -8,11 +8,13 @@ int rebuild(const char* pathname){
     FILE *fp = NULL;
     int file_sz = 0;
     char* file_buf = NULL;
+    re_elf_t re_self;
 
     fp = fopen(pathname, "rb+");
     if(NULL == fp){
         return -1;
     }
+    
     fseek(fp, 0, SEEK_END);
     file_sz = ftell(fp);
     fseek(fp, 0, SEEK_SET);
@@ -27,6 +29,12 @@ int rebuild(const char* pathname){
 
     if(re_elf_check_elfheader((uintptr_t)file_buf) < 0){
         printf("error elf-format!\n");
+        free(file_buf);
+        return -1;
+    }
+
+    if(re_elf_init(&re_self, (uintptr_t)file_buf, pathname) < 0){
+        printf("elf init error!\n");
         free(file_buf);
         return -1;
     }
