@@ -52,38 +52,46 @@ static void re_elf_show_elf_info(re_elf_t *self){
     printf("-------------------------------\r\n");
     printf("pathname:%s\r\n", self->pathname);
 
-    printf("base_addr:%p\r\n", self->base_addr);
-    printf("phdr:%p\r\n", self->phdr - self->base_addr);
-    printf("dynamic_tab:%p\r\n", self->dynamic_tab - self->base_addr);
-    printf("dynamic_sz:%p\r\n", self->dynamic_sz);
+    printf("preinit_array_addr: 0x%x\r\n", self->preinit_array_addr);
+    printf("preinit_array_off:  0x%x\r\n", self->preinit_array_off);
+    printf("preinit_array_sz:   0x%x\r\n", self->preinit_array_sz);
 
-    printf("preinit_array_addr:%p\r\n", self->preinit_array_addr);
-    printf("preinit_array_sz:%p\r\n", self->preinit_array_sz);
-    printf("init_array_addr:%p\r\n", self->init_array_addr);
-    printf("init_array_sz:%p\r\n", self->init_array_sz);
-    printf("finit_array_addr:%p\r\n", self->finit_array_addr);
-    printf("finit_array_sz:%p\r\n", self->finit_array_sz);
+    printf("init_array_addr:    0x%x\r\n", self->init_array_addr);
+    printf("init_array_off:     0x%x\r\n", self->init_array_off);
+    printf("init_array_sz:      0x%x\r\n", self->init_array_sz);
 
-    printf("hash_addr:%p\r\n", self->hash_addr);
-    printf("hash_sz:%p\r\n", self->hash_sz);
+    printf("finit_array_addr:   0x%x\r\n", self->finit_array_addr);
+    printf("finit_array_off:    0x%x\r\n", self->finit_array_off);
+    printf("finit_array_sz:     0x%x\r\n", self->finit_array_sz);
 
-    printf("dynstr_addr:%p\r\n", self->dynstr_addr);
-    printf("dynstr_sz:%p\r\n", self->dynstr_sz);
-    printf("dynsym_addr:%p\r\n", self->dynsym_addr);
-    printf("dynsym_sz:%p\r\n", self->dynsym_sz);
+    printf("hash_addr:          0x%x\r\n", self->hash_addr);
+    printf("hash_off:           0x%x\r\n", self->hash_off);
+    printf("hash_sz:            0x%x\r\n", self->hash_sz);
 
-    printf("relplt_addr:%p\r\n", self->relplt_addr);
-    printf("relplt_sz:%p\r\n", self->relplt_sz);
-    printf("reldyn_addr:%p\r\n", self->reldyn_addr);
-    printf("reldyn_sz:%p\r\n", self->reldyn_sz);
+    printf("dynstr_addr:        0x%x\r\n", self->dynstr_addr);
+    printf("dynstr_off:         0x%x\r\n", self->dynstr_off);
+    printf("dynstr_sz:          0x%x\r\n", self->dynstr_sz);
+    printf("dynsym_addr:        0x%x\r\n", self->dynsym_addr);
+    printf("dynsym_off:         0x%x\r\n", self->dynsym_off);
+    printf("dynsym_sz:          0x%x\r\n", self->dynsym_sz);
 
-    printf("plt_addr:%p\r\n", self->plt_addr);
-    printf("plt_sz:%p\r\n", self->plt_sz);
-    printf("got_addr:%p\r\n", self->got_addr);
-    printf("got_sz:%p\r\n", self->got_sz);
+    printf("relplt_addr:        0x%x\r\n", self->relplt_addr);
+    printf("relplt_off:         0x%x\r\n", self->relplt_off);
+    printf("relplt_sz:          0x%x\r\n", self->relplt_sz);
+    printf("reldyn_addr:        0x%x\r\n", self->reldyn_addr);
+    printf("reldyn_off:         0x%x\r\n", self->reldyn_off);
+    printf("reldyn_sz:          0x%x\r\n", self->reldyn_sz);
 
-    printf("text_addr:%p\r\n", self->text_addr);
-    printf("text_sz:%p\r\n", self->text_sz);
+    printf("plt_addr:           0x%x\r\n", self->plt_addr);
+    printf("plt_off:            0x%x\r\n", self->plt_off);
+    printf("plt_sz:             0x%x\r\n", self->plt_sz);
+    printf("got_addr:           0x%x\r\n", self->got_addr);
+    printf("got_off:            0x%x\r\n", self->got_off);
+    printf("got_sz:             0x%x\r\n", self->got_sz);
+
+    printf("text_addr:          0x%x\r\n", self->text_addr);
+    printf("text_off:           0x%x\r\n", self->text_off);
+    printf("text_sz:            0x%x\r\n", self->text_sz);
 
     printf("-------------------------------\r\n");
     printf("\r\n");
@@ -117,9 +125,9 @@ static ElfW(Off) re_elf_get_section_off(re_elf_t *self, ElfW(Addr) addr){
 int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
     ElfW(Phdr) *dynamic_Phdr  = NULL;
     ElfW(Phdr) *eh_frame_Phdr = NULL;
-    ElfW(Dyn)  *dyn     = NULL;
-    ElfW(Dyn)  *dyn_end = NULL;
-    uint32_t   *hash;
+    ElfW(Dyn)  *dyn           = NULL;
+    ElfW(Dyn)  *dyn_end       = NULL;
+    uint32_t   *hash          = NULL;
 
     if(0 == base_addr || NULL == pathname) {
         return -1;
@@ -127,16 +135,15 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
     
     memset(self, 0, sizeof(re_elf_t));
 
-    self->pathname  = pathname;
-    self->base_addr = (ElfW(Addr))base_addr;
-    self->ehdr = (ElfW(Ehdr)*)base_addr;
-    self->phdr = (ElfW(Phdr)*)(base_addr + self->ehdr->e_phoff);
-    
+    self->pathname    = pathname;
+    self->base_addr   = (ElfW(Addr))base_addr;
+    self->ehdr        = (ElfW(Ehdr)*)base_addr;
+    self->phdr        = (ElfW(Phdr)*)(base_addr + self->ehdr->e_phoff);
+
     dynamic_Phdr = re_elf_get_segment_by_type(self, PT_DYNAMIC);
     if(NULL == dynamic_Phdr){
         return -1;
     }
-    
     self->dynamic_tab = (ElfW(Dyn)*)(base_addr + dynamic_Phdr->p_offset);
     self->dynamic_sz  = dynamic_Phdr->p_filesz;
     dyn     = self->dynamic_tab;
@@ -153,7 +160,7 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
         case DT_PREINIT_ARRAY:
             {
                 self->preinit_array_addr = dyn->d_un.d_ptr;
-                self->preinit_array_off = re_elf_get_section_off(self, self->preinit_array_addr);
+                self->preinit_array_off  = re_elf_get_section_off(self, self->preinit_array_addr);
                 break;
             }
         case DT_PREINIT_ARRAYSZ:
@@ -164,7 +171,7 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
         case DT_INIT_ARRAY:
             {
                 self->init_array_addr = dyn->d_un.d_ptr;
-                self->init_array_off = re_elf_get_section_off(self, self->init_array_addr);
+                self->init_array_off  = re_elf_get_section_off(self, self->init_array_addr);
                 break;
             }
         case DT_INIT_ARRAYSZ:
@@ -175,7 +182,7 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
         case DT_FINI_ARRAY:
             {
                 self->finit_array_addr = dyn->d_un.d_ptr;
-                self->finit_array_off = re_elf_get_section_off(self, self->finit_array_addr);
+                self->finit_array_off  = re_elf_get_section_off(self, self->finit_array_addr);
                 break;
             }
         case DT_FINI_ARRAYSZ:
@@ -186,9 +193,9 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
         case DT_HASH:
             {
                 self->hash_addr = dyn->d_un.d_ptr;
-                self->hash_off = re_elf_get_section_off(self, self->hash_addr);
+                self->hash_off  = re_elf_get_section_off(self, self->hash_addr);
 
-                hash = (uint32_t *)self->hash_addr;
+                hash = (uint32_t *)(self->hash_addr + self->base_addr);
                 self->hash_sz = (hash[0] + hash[1]) * 4 + 8;
                 if(0 != self->dynsym_ent){
                     self->dynsym_sz = hash[1] * self->dynsym_ent;
@@ -198,7 +205,7 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
         case DT_STRTAB:
             {
                 self->dynstr_addr = dyn->d_un.d_ptr;
-                self->dynstr_off = re_elf_get_section_off(self, self->dynstr_addr);
+                self->dynstr_off  = re_elf_get_section_off(self, self->dynstr_addr);
                 break;
             }
         case DT_STRSZ:
@@ -209,7 +216,7 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
         case DT_SYMTAB:
             {
                 self->dynsym_addr = dyn->d_un.d_ptr;
-                self->dynsym_off = re_elf_get_section_off(self, self->dynsym_addr);
+                self->dynsym_off  = re_elf_get_section_off(self, self->dynsym_addr);
                 break;
             }
         case DT_SYMENT:
@@ -229,19 +236,22 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
         case DT_JMPREL:
             {
                 self->relplt_addr = dyn->d_un.d_ptr;
-                self->relplt_off = re_elf_get_section_off(self, self->relplt_addr);
+                self->relplt_off  = re_elf_get_section_off(self, self->relplt_addr);
                 break;
             }
         case DT_PLTRELSZ:
             {
                 self->relplt_sz = dyn->d_un.d_val;
+                if(-1 != self->is_use_rela){
+
+                }
                 break;
             }
         case DT_REL:
         case DT_RELA:
             {
                 self->reldyn_addr = dyn->d_un.d_ptr;
-                self->reldyn_off = re_elf_get_section_off(self, self->reldyn_addr);
+                self->reldyn_off  = re_elf_get_section_off(self, self->reldyn_addr);
                 break;
             }
         case DT_RELSZ:
@@ -253,21 +263,7 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
         case DT_PLTGOT:
             {
                 self->got_addr = dyn->d_un.d_ptr;
-                self->got_off = re_elf_get_section_off(self, self->got_addr);
-
-                if(EM_AARCH64 == self->ehdr->e_machine){
-                    if(1 == self->is_use_rela){
-                        self->got_sz = 24 + 8 * (self->relplt_sz) / sizeof(Elf64_Rela);
-                    }else{
-                        self->got_sz = 24 + 8 * (self->relplt_sz) / sizeof(Elf64_Rel);
-                    }
-                }else{
-                    if(1 == self->is_use_rela){
-                        self->got_sz = 12 + 4 * (self->relplt_sz) / sizeof(Elf32_Rela);
-                    }else{
-                        self->got_sz = 12 + 4 * (self->relplt_sz) / sizeof(Elf32_Rel);
-                    }
-                }
+                self->got_off  = re_elf_get_section_off(self, self->got_addr);
                 break;
             }
         default:
@@ -275,6 +271,21 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
         }
     }
     
+    // get .got size
+    if(EM_AARCH64 == self->ehdr->e_machine){
+        if(1 == self->is_use_rela){
+            self->got_sz = 24 + 8 * (self->relplt_sz) / sizeof(Elf64_Rela);
+        }else{
+            self->got_sz = 24 + 8 * (self->relplt_sz) / sizeof(Elf64_Rel);
+        }
+    }else{
+        if(1 == self->is_use_rela){
+            self->got_sz = 12 + 4 * (self->relplt_sz) / sizeof(Elf32_Rela);
+        }else{
+            self->got_sz = 12 + 4 * (self->relplt_sz) / sizeof(Elf32_Rel);
+        }
+    }
+
     // get .plt
     if(EM_AARCH64 == self->ehdr->e_machine){
         self->plt_addr = self->relplt_addr + self->relplt_sz + 8;
@@ -295,8 +306,7 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
 
     // get .text
     self->text_addr = self->plt_addr + self->plt_sz;
-    self->text_off = re_elf_get_section_off(self, self->text_addr);
-
+    self->text_off  = re_elf_get_section_off(self, self->text_addr);
     if(EM_AARCH64 == self->ehdr->e_machine){
         eh_frame_Phdr = re_elf_get_segment_by_type(self, PT_GNU_EH_FRAME);
     }else{
@@ -306,6 +316,7 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname){
         return -1;
     }
     self->text_sz = eh_frame_Phdr->p_vaddr - self->text_addr;
+
 
 #ifdef RE_DEBUG
     re_elf_show_elf_info(self);

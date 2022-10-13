@@ -14,7 +14,6 @@ int rebuild(const char* pathname){
     if(NULL == fp){
         return -1;
     }
-    
     fseek(fp, 0, SEEK_END);
     file_sz = ftell(fp);
     fseek(fp, 0, SEEK_SET);
@@ -25,7 +24,7 @@ int rebuild(const char* pathname){
     }
     fread(file_buf, 1, file_sz, fp);
     fclose(fp);
-    // printf("%s\n", file_buf);
+    //printf("%s\n", file_buf);
 
     if(re_elf_check_elfheader((uintptr_t)file_buf) < 0){
         printf("error elf-format!\n");
