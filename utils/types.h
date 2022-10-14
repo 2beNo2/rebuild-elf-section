@@ -174,6 +174,7 @@ typedef struct elf64_shdr{
 #define	SHT_HIUSER		0xffffffff
 
 //sh_flags
+#define SHF_NONE        0x0
 #define	SHF_WRITE		0x1
 #define	SHF_ALLOC		0x2
 #define	SHF_EXECINSTR	0x4

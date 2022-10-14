@@ -356,6 +356,23 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname, uint3
 }
 
 
+static void re_elf_set_section_info(ElfW(Shdr) *shdr, uint32_t name, uint32_t type, 
+    ElfW(Xword) flags, ElfW(Addr) addr, ElfW(Off) off, ElfW(Xword) size,
+    uint32_t link, uint32_t info, ElfW(Xword) addralign, ElfW(Xword) entsize){
+    memset(shdr, 0, sizeof(ElfW(Shdr)));
+    shdr->sh_name = name;
+    shdr->sh_type = type;
+    shdr->sh_flags = flags;
+    shdr->sh_addr = addr;
+    shdr->sh_offset = off;
+    shdr->sh_size = size;
+    shdr->sh_link = link;
+    shdr->sh_info = info;
+    shdr->sh_addralign = addralign;
+    shdr->sh_entsize = entsize;
+}
+
+
 int re_elf_rewrite(re_elf_t *self){
     FILE *fp   = NULL;
     ElfW(Shdr) *shdr = NULL;
@@ -367,14 +384,15 @@ int re_elf_rewrite(re_elf_t *self){
 
     shdr = (ElfW(Shdr)*)malloc(sizeof(ElfW(Shdr)));
     if(NULL == shdr){
+        fclose(fp);
         return -1;
     }
     memset(shdr, 0, sizeof(ElfW(Shdr)));
 
     //重构section相关数据，section_off、section_num、shtrndx
     self->ehdr->e_shoff = self->file_sz + 237;
-    self->ehdr->e_shnum = 1;
-    self->ehdr->e_shstrndx = 1;
+    self->ehdr->e_shnum = 13; //?
+    self->ehdr->e_shstrndx = 12; //?
     fwrite(self->base_addr, 1, self->file_sz, fp);
 
     //写入shstrtab，注意对齐
@@ -384,73 +402,93 @@ int re_elf_rewrite(re_elf_t *self){
     fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
 
     //写入初始化相关的节
-    shdr->sh_name = 0xaa;
-    shdr->sh_type = SHT_PREINIT_ARRAY;
-    shdr->sh_flags = SHF_WRITE | SHF_ALLOC;  //?
-    shdr->sh_addr = self->preinit_array_addr;
-    shdr->sh_offset = self->preinit_array_off;
-    shdr->sh_size = self->preinit_array_sz;
-    shdr->sh_link = 0;
-    shdr->sh_info = 0;
-    shdr->sh_addralign = sizeof(ElfW(Xword));
-    shdr->sh_entsize = sizeof(ElfW(Xword));
+    re_elf_set_section_info(shdr, 0xaa, SHT_PREINIT_ARRAY, SHF_WRITE | SHF_ALLOC,
+                            self->preinit_array_addr, self->preinit_array_off, self->preinit_array_sz,
+                            0, 0, sizeof(ElfW(Xword)), sizeof(ElfW(Xword)));
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
+    re_elf_set_section_info(shdr, 0xb9, SHT_INIT_ARRAY, SHF_WRITE | SHF_ALLOC,
+                            self->init_array_addr, self->init_array_off, self->init_array_sz,
+                            0, 0, sizeof(ElfW(Xword)), sizeof(ElfW(Xword)));
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
+    re_elf_set_section_info(shdr, 0xc5, SHT_FINI_ARRAY, SHF_WRITE | SHF_ALLOC,
+                            self->finit_array_addr, self->finit_array_off, self->finit_array_sz,
+                            0, 0, sizeof(ElfW(Xword)), sizeof(ElfW(Xword)));
     fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
 
-    memset(shdr, 0, sizeof(ElfW(Shdr)));
-    shdr->sh_name = 0xb9;
-    shdr->sh_type = SHT_INIT_ARRAY;
-    shdr->sh_flags = SHF_WRITE | SHF_ALLOC;  //?
-    shdr->sh_addr = self->init_array_addr;
-    shdr->sh_offset = self->init_array_off;
-    shdr->sh_size = self->init_array_sz;
-    shdr->sh_link = 0;
-    shdr->sh_info = 0;
-    shdr->sh_addralign = sizeof(ElfW(Xword));
-    shdr->sh_entsize = sizeof(ElfW(Xword));
-    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
-
-    memset(shdr, 0, sizeof(ElfW(Shdr)));
-    shdr->sh_name = 0xc5;
-    shdr->sh_type = SHT_FINI_ARRAY;
-    shdr->sh_flags = SHF_WRITE | SHF_ALLOC;  //?
-    shdr->sh_addr = self->finit_array_addr;
-    shdr->sh_offset = self->finit_array_off;
-    shdr->sh_size = self->finit_array_sz;
-    shdr->sh_link = 0;
-    shdr->sh_info = 0;
-    shdr->sh_addralign = sizeof(ElfW(Xword));
-    shdr->sh_entsize = sizeof(ElfW(Xword));
-    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
-
-    //写入hash，todo
-    memset(shdr, 0, sizeof(ElfW(Shdr)));
-    shdr->sh_name = 0xc5;
-    shdr->sh_type = SHT_HASH;
-    shdr->sh_flags = SHF_WRITE | SHF_ALLOC;  //?
-    shdr->sh_addr = self->hash_addr;
-    shdr->sh_offset = self->hash_off;
-    shdr->sh_size = self->hash_sz;
-    shdr->sh_link = 0;
-    shdr->sh_info = 0;
-    shdr->sh_addralign = sizeof(ElfW(Xword));
-    shdr->sh_entsize = sizeof(ElfW(Xword));
+    //写入hash
+    re_elf_set_section_info(shdr, 0x3e, SHT_HASH, SHF_ALLOC,
+                            self->hash_addr, self->hash_off, self->hash_sz,
+                            6, 0, sizeof(ElfW(Xword)), sizeof(ElfW(Word)));
     fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
 
     //写入dynstr、dynsym
-    memset(shdr, 0, sizeof(ElfW(Shdr)));
+    re_elf_set_section_info(shdr, 0x4c, SHT_STRTAB, SHF_ALLOC,
+                            self->dynstr_addr, self->dynstr_off, self->dynstr_sz,
+                            0, 0, 1, 0);
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
+    if(EM_AARCH64 == self->ehdr->e_machine){
+        re_elf_set_section_info(shdr, 0x44, SHT_SYMTAB, SHF_ALLOC,
+                                self->dynsym_addr, self->dynsym_off, self->dynsym_sz,
+                                5, 0, sizeof(ElfW(Xword)), 0x18);
+    }else{
+        re_elf_set_section_info(shdr, 0x44, SHT_SYMTAB, SHF_ALLOC,
+                                self->dynsym_addr, self->dynsym_off, self->dynsym_sz,
+                                5, 0, sizeof(ElfW(Xword)), 0x10);       
+    }
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp); 
 
     //写入重定位节
-    memset(shdr, 0, sizeof(ElfW(Shdr)));
+    if(EM_AARCH64 == self->ehdr->e_machine){
+        //rela
+        re_elf_set_section_info(shdr, 0x70, SHT_RELA, SHF_ALLOC,
+                                self->reldyn_addr, self->reldyn_off, self->reldyn_sz,
+                                6, 0, sizeof(ElfW(Xword)), 0x18);
+    }else{
+        //rel 缺少字符串
+        re_elf_set_section_info(shdr, 0x70, SHT_REL, SHF_ALLOC,
+                                self->reldyn_addr, self->reldyn_off, self->reldyn_sz,
+                                6, 0, sizeof(ElfW(Xword)), 0x8);
+    }
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);
+
+    if(EM_AARCH64 == self->ehdr->e_machine){
+        //rela
+        re_elf_set_section_info(shdr, 0x7a, SHT_RELA, SHF_ALLOC,
+                                self->relplt_addr, self->relplt_off, self->relplt_sz,
+                                6, 0, sizeof(ElfW(Xword)), 0x18);
+    }else{
+        //rel 缺少字符串
+        re_elf_set_section_info(shdr, 0x7a, SHT_RELA, SHF_ALLOC,
+                                self->relplt_addr, self->relplt_off, self->relplt_sz,
+                                6, 0, sizeof(ElfW(Xword)), 0x8);
+    }
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp); 
 
     //写入plt
-    memset(shdr, 0, sizeof(ElfW(Shdr)));
+    re_elf_set_section_info(shdr, 0x7f, SHT_PROGBITS, SHF_EXECINSTR | SHF_ALLOC,
+                            self->plt_addr, self->plt_off, self->plt_sz,
+                            0, 0, 0x10, 0x10);
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);    
 
     //写入got
-    memset(shdr, 0, sizeof(ElfW(Shdr)));
+    re_elf_set_section_info(shdr, 0xda, SHT_PROGBITS, SHF_EXECINSTR | SHF_ALLOC,
+                            self->got_addr, self->got_off, self->got_sz,
+                            0, 0, sizeof(ElfW(Xword)), sizeof(ElfW(Xword)));
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);    
 
     //写入text
-    memset(shdr, 0, sizeof(ElfW(Shdr)));
+    re_elf_set_section_info(shdr, 0x84, SHT_PROGBITS, SHF_EXECINSTR | SHF_ALLOC,
+                            self->text_addr, self->text_off, self->text_sz,
+                            0, 0, 4, 0);
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp);   
 
+    //写入sh_str
+    re_elf_set_section_info(shdr, 0x1, SHT_STRTAB, SHF_NONE,
+                            0, self->file_sz, 0xed,
+                            0, 0, 1, 0);
+    fwrite(shdr, 1, sizeof(ElfW(Shdr)), fp); 
+
+    fclose(fp);
     return 0;
 }
 
