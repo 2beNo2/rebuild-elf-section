@@ -343,6 +343,7 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname, uint3
     //get outout path
     self->new_pathname = (char*)malloc(strlen(self->pathname) + 10);
     if(NULL == self->new_pathname){
+        perror("[-] malloc");
         return -1;
     }
     strncpy(self->new_pathname, self->pathname, strlen(self->pathname));
@@ -379,11 +380,13 @@ int re_elf_rewrite(re_elf_t *self){
 
     fp = fopen(self->new_pathname, "wb");
     if(NULL == fp){
+        perror("[-] fopen");
         return -1;
     }
 
     shdr = (ElfW(Shdr)*)malloc(sizeof(ElfW(Shdr)));
     if(NULL == shdr){
+        perror("[-] malloc");
         fclose(fp);
         return -1;
     }
