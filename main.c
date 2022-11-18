@@ -4,7 +4,8 @@
 
 #include "utils/re_elf.h"
 
-int rebuild(const char* pathname){
+int rebuild(const char* pathname)
+{
     FILE *fp = NULL;
     uint32_t file_sz = 0;
     char* file_buf = NULL;
@@ -51,7 +52,8 @@ int rebuild(const char* pathname){
 }
 
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[])
+{
     int c = 0;
     if(argc < 3){
         printf("Usage:%s -r pathname\n", argv[0]);

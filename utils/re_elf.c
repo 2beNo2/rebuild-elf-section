@@ -25,7 +25,8 @@ char g_sh_str[237] = {
 
 
 //ELF header checker
-int re_elf_check_elfheader(uintptr_t base_addr){
+int re_elf_check_elfheader(uintptr_t base_addr)
+{
     ElfW(Ehdr) *ehdr = (ElfW(Ehdr)*)base_addr;
 
     //check magic
@@ -66,7 +67,8 @@ int re_elf_check_elfheader(uintptr_t base_addr){
 }
 
 
-static void re_elf_show_elf_info(re_elf_t *self){
+static void re_elf_show_elf_info(re_elf_t *self)
+{
     printf("\r\n");
     printf("-------------------------------\r\n");
     printf("[+] pathname:           %s\r\n", self->pathname);
@@ -118,7 +120,8 @@ static void re_elf_show_elf_info(re_elf_t *self){
 }
 
 
-static ElfW(Phdr) *re_elf_get_segment_by_type(re_elf_t *self, ElfW(Word) type){
+static ElfW(Phdr) *re_elf_get_segment_by_type(re_elf_t *self, ElfW(Word) type)
+{
     ElfW(Phdr) *phdr = NULL;
     for(phdr = self->phdr; phdr < self->phdr + self->ehdr->e_phnum; phdr++){
         if(phdr->p_type == type){
@@ -129,7 +132,8 @@ static ElfW(Phdr) *re_elf_get_segment_by_type(re_elf_t *self, ElfW(Word) type){
 }
 
 
-static ElfW(Off) re_elf_get_section_off(re_elf_t *self, ElfW(Addr) addr){
+static ElfW(Off) re_elf_get_section_off(re_elf_t *self, ElfW(Addr) addr)
+{
     ElfW(Phdr) *phdr = NULL;
     for(phdr = self->phdr; phdr < self->phdr + self->ehdr->e_phnum; phdr++){
         if(phdr->p_type == PT_LOAD){
@@ -142,7 +146,8 @@ static ElfW(Off) re_elf_get_section_off(re_elf_t *self, ElfW(Addr) addr){
 }
 
 
-int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname, uint32_t file_sz){
+int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname, uint32_t file_sz)
+{
     ElfW(Phdr) *dynamic_Phdr  = NULL;
     ElfW(Phdr) *eh_frame_Phdr = NULL;
     ElfW(Dyn)  *dyn           = NULL;
@@ -359,7 +364,8 @@ int re_elf_init(re_elf_t *self, uintptr_t base_addr, const char *pathname, uint3
 
 static void re_elf_set_section_info(ElfW(Shdr) *shdr, uint32_t name, uint32_t type, 
     ElfW(Xword) flags, ElfW(Addr) addr, ElfW(Off) off, ElfW(Xword) size,
-    uint32_t link, uint32_t info, ElfW(Xword) addralign, ElfW(Xword) entsize){
+    uint32_t link, uint32_t info, ElfW(Xword) addralign, ElfW(Xword) entsize)
+{
     memset(shdr, 0, sizeof(ElfW(Shdr)));
     shdr->sh_name = name;
     shdr->sh_type = type;
@@ -374,7 +380,8 @@ static void re_elf_set_section_info(ElfW(Shdr) *shdr, uint32_t name, uint32_t ty
 }
 
 
-int re_elf_rewrite(re_elf_t *self){
+int re_elf_rewrite(re_elf_t *self)
+{
     FILE *fp   = NULL;
     ElfW(Shdr) *shdr = NULL;
 
@@ -496,7 +503,8 @@ int re_elf_rewrite(re_elf_t *self){
 }
 
 
-void re_elf_destructor(re_elf_t *self){
+void re_elf_destructor(re_elf_t *self)
+{
     if(NULL != self->new_pathname){
         free(self->new_pathname);
         self->new_pathname = NULL;

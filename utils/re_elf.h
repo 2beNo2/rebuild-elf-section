@@ -14,7 +14,8 @@ extern "C" {
 #define ElfW(type) Elf32_ ## type
 #endif
 
-typedef struct{
+typedef struct
+{
     const char  *pathname;
     char  *new_pathname;
     char  *shstrtab;
