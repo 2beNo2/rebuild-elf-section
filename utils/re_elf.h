@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#if defined(__LP64__)
+#if defined(__aarch64__)
 #define ElfW(type) Elf64_ ## type
 #else
 #define ElfW(type) Elf32_ ## type
