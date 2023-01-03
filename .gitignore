@@ -1,6 +1,6 @@
 
 *.DS_Store
-
+.vscode/
 /arm64-v8a
 /armeabi-v7a
 /output
